@@ -1,2 +1,2 @@
 # gabs-invest
-This is the monorepo for Gabs
+This is the monorepo for Gabs Invest App
