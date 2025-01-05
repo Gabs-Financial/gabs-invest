@@ -1,2 +1,2 @@
-# gabs-invest-api
+# gabs-invest
 This is the monorepo for Gabs
