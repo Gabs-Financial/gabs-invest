@@ -13,23 +13,27 @@ const Configuration = {
             'revert',
             'style',
             'test',
+            'init',
         ]],
         'subject-case': [2, 'always', 'sentence-case'],
         'header-max-length': [2, 'always', 72],
         'body-max-line-length': [1, 'always', 100],
-        'scope-enum': [2, 'always', ['admin', 'client', 'api']],
+        'scope-enum': [2, 'always', ['admin', 'client', 'server', "global"]],
         'scope-empty': [2, 'never'],
-        'footer-empty': [2, 'never'],
+        'footer-empty': [0, 'always'],
         'subject-full-stop': [2, 'never', '.'],
         'subject-min-length': [2, 'always', 10],
-        'signed-off-by': [2, 'always', 'Signed-off-by:'],
+        'signed-off-by': [0, 'always', 'Signed-off-by:'],
     },
 
     ignores: [(commit) => commit.startsWith('Merge')],
     defaultIgnores: true,
     helpUrl: 'https://github.com/conventional-changelog/commitlint/#what-is-commitlint',
     prompt: {
-        settings: {},
+        settings: {
+            enableMultipleScopes: true,
+            scopeEnumSeparator: ','
+        },
         messages: {
             skip: ':skip',
             max: 'upper %d chars',
