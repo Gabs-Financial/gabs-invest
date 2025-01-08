@@ -1,6 +1,7 @@
 {
   "name": "gabs-invest",
   "version": "1.0.0",
+  "type": "module",
   "description": "A monorepo for the gabs invest platform",
   "private": true,
   "workspaces": [
@@ -13,7 +14,9 @@
     "start:server": "npm run dev --workspace=server",
     "start:client": "npm run dev --workspace=client",
     "start:admin": "npm run dev --workspace=admin",
-    "prepare": "husky"
+    "prepare": "husky",
+    "commitlint": " commitlint --edit -c  ",
+    "commit": "commit"
   },
   "repository": {
     "type": "git",
@@ -28,6 +31,7 @@
   "devDependencies": {
     "@commitlint/cli": "^19.6.1",
     "@commitlint/config-conventional": "^19.6.0",
+    "@commitlint/prompt-cli": "^19.7.0",
     "cross-env": "^7.0.3",
     "husky": "^9.1.7"
   }

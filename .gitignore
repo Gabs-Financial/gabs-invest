@@ -5,3 +5,4 @@ logs
 .idea
 .eslintcache
 package-lock.json
+.husky
