@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1744078453266,
+      "tag": "0000_tearful_smasher",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1744091192638,
+      "tag": "0001_greedy_grim_reaper",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1744117101796,
+      "tag": "0002_tan_piledriver",
+      "breakpoints": true
+    }
+  ]
+}

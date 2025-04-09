@@ -1,7 +1,8 @@
 import {app, server} from "./app";
 import dotenv from "dotenv"
 import chalk from "chalk"
-
+import { systemLogger } from "./utils/logger";
+import './queue'
 
 
 
@@ -15,7 +16,7 @@ server.listen(PORT, () => {
             process.env.NODE_ENV
         )} on ${chalk.blue.bold(PORT)}`
     )
-    // systemLogger.info(`Server running on ${PORT}`);
+    systemLogger.info(`Server running on ${PORT}`);
 })
 
 
