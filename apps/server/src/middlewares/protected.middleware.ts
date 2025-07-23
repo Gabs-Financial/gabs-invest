@@ -8,7 +8,6 @@ import { user } from "../db/schema/user.model";
 import db from "../db/connectDb";
 import { systemLogger } from "../utils/logger";
 import sessionServices from "../services/session/session.services";
-import { decode } from "punycode";
 
 
 
@@ -21,14 +20,16 @@ export const authMiddleware = asyncHandler(async (req: Request, res: Response, n
     const accessToken: string | null = (req.headers['authorization'] as string | undefined) || (req.headers['Authorization'] as string | undefined) || null;
 
 
-    if (!accessToken || !accessToken.startsWith(BEARER_PREFIX)) {
-        throw new UnauthorizedException("UnAuthorized Access", ErrorCode.AUTH_UNAUTHORIZED_ACCESS)
-    }
 
-    const token = accessToken.slice(BEARER_PREFIX.length);
 
 
     try {
+
+        if (!accessToken || !accessToken.startsWith(BEARER_PREFIX)) {
+            throw new UnauthorizedException("UnAuthorized Access", ErrorCode.AUTH_UNAUTHORIZED_ACCESS)
+        }
+
+        const token = accessToken.slice(BEARER_PREFIX.length);
 
         // const token = req.cookies.access_token
 
@@ -40,7 +41,7 @@ export const authMiddleware = asyncHandler(async (req: Request, res: Response, n
 
 
         const verified = jwtUtility.verifyAccessToken(token, {
-            audience: AudienceType.Web,
+            audience: AudienceType.MobileApp,
             subject: decoded?.sub as string
         });
 
@@ -67,6 +68,8 @@ export const authMiddleware = asyncHandler(async (req: Request, res: Response, n
 
         systemLogger.error(error)
         console.log(error)
+        throw new UnauthorizedException("Unauthorized User", ErrorCode.AUTH_UNAUTHORIZED_ACCESS);
+
     }
 
 })

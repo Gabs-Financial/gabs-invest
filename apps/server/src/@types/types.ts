@@ -4,4 +4,9 @@ enum VerificationEnum {
     PHONE_VERIFICATION = "PHONE_VERIFICATION",
 }
 
-export { VerificationEnum };
+enum ThirdPartyProviders {
+    ANCHOR = "ANCHOR",
+    MONNIFY = "MONNIFY"
+}
+
+export { VerificationEnum, ThirdPartyProviders };

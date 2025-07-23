@@ -2,7 +2,7 @@ import { HTTPSTATUS } from "../../config/statusCode.config";
 import { asyncHandler } from "../../middlewares/asyncHandler";
 import { setCookies } from "../../utils/cookies.utils";
 import AuthServices from "./auth.services";
-import { passcodeVerificationValidation, phoneNumberVerificationValidation, registrationValidationSchema } from "./auth.validations";
+import { loginSchema, passcodeVerificationValidation, phoneNumberVerificationValidation, refreshTokenSchema, registrationValidationSchema } from "./auth.validations";
 import { Request, Response } from "express";
 
 
@@ -27,7 +27,7 @@ class AuthControllers {
     }
 
 
-    public register  = asyncHandler(async(req:Request, res:Response) => {
+    public register = asyncHandler(async (req: Request, res: Response) => {
 
         const { phoneNumber } = registrationValidationSchema.parse({ ...req.body })
 
@@ -37,27 +37,76 @@ class AuthControllers {
         return res.status(HTTPSTATUS.CREATED).json({
             success: true,
             message: "Verification code sent successfully",
-           
+
         })
 
     })
 
+    public verifyPasscode = asyncHandler(async (req: Request, res: Response) => {
 
-    public verifyPhoneNumberOtp = asyncHandler(async(req:Request, res:Response) => {
+        const { passcode } = req.body;
 
-        const {otp, phoneNumber} = phoneNumberVerificationValidation.parse({...req.body})
+        const userId =req.user.id
 
-       const {id,accessToken, refreshToken} = await this.authService.verifyPhoneNumber(phoneNumber, otp)
+        const result = await this.authService.verifyPasscode(passcode, userId);
+
+        if (result && result.has_exceeded_attempts) {
+            return res.status(HTTPSTATUS.ACCEPTED).json({
+                success: false,
+                message: "Maximum passcode attempts exceeded. Your account has been flagged.",
+                data: {
+                    number_of_attempts: result.number_of_attempts,
+                    has_exceeded_attempt: result.has_exceeded_attempts,
+                },
+            });
+        }
+
+        return res.status(HTTPSTATUS.OK).json({
+            success: true,
+            message: "Passcode verified successfully",
+        });
+    });
 
 
-        setCookies({ res, accessToken, refreshToken })
+    public refreshToken = asyncHandler(async (req: Request, res: Response) => {
+
+        const { refreshToken: token } = refreshTokenSchema.parse({ ...req.body })
+
+        const refreshTokenHeader = req.headers['x-refresh-token'];
+
+        console.log(refreshTokenHeader, "this is the refresh token header")
+        console.log(token, "this is the refresh token from the body")
+
+
+        const { accessToken, refreshToken } = await this.authService.refreshToken(token);
+
+        console.log("we are fteching the motherfucking refresh token")
+
+
+        return res.status(HTTPSTATUS.OK).json({
+            success: true,
+            message: "Retrived the access token succesfully",
+            data: {
+                accessToken,
+                refreshToken
+            }
+        });
+    });
+
+
+    public verifyPhoneNumberOtp = asyncHandler(async (req: Request, res: Response) => {
+
+        const { otp, phoneNumber } = phoneNumberVerificationValidation.parse({ ...req.body })
+
+        const {  accessToken, refreshToken } = await this.authService.verifyPhoneNumber(phoneNumber, otp)
+
+
 
 
         return res.status(HTTPSTATUS.OK).json({
             success: true,
             message: "Phone number verified successfully",
-            data:{
-                userId: id,
+            data: {
                 accessToken,
                 refreshToken
             }
@@ -66,9 +115,54 @@ class AuthControllers {
     })
 
 
+    public login = asyncHandler(async (req: Request, res: Response)=> {
+
+        const {password,phoneNumber} = loginSchema.parse({...req.body})
 
 
 
+        const {accessToken, refreshToken} = await this.authService.login(phoneNumber, password)
+
+        return res.status(HTTPSTATUS.OK).json({
+            success: true,
+            message: "Login successfull",
+            data: {
+                accessToken,
+                refreshToken
+            }
+        });
+
+    })
+
+
+    public resendOtp = asyncHandler(async (req: Request, res: Response) => {
+
+        const { phoneNumber } = registrationValidationSchema.parse({ ...req.body })
+
+
+        await this.authService.resendToken(phoneNumber as string);
+
+
+
+        return res.status(HTTPSTATUS.OK).json({
+            success: true,
+            message: "Token resent succesfully",
+
+        });
+    });
+
+    public logOut = asyncHandler(async (req: Request, res: Response) => {
+
+        const refreshToken = req.headers['x-refresh-token'];
+
+        await this.authService.logout(refreshToken as string);
+
+        return res.status(HTTPSTATUS.OK).json({
+            success: true,
+            message: "Logout succesful",
+        });
+
+    });
 }
 
 

@@ -1,110 +1,95 @@
-import { Job, MetricsTime, Worker } from "bullmq"
-import { connection, QueueRegistry } from "../queue-registry"
-import redis from "../../config/redis.config"
-import { anchor_customer_api } from "../../providers/anchor/anchor.modules"
-import { systemLogger } from "../../utils/logger"
-import db from "../../db/connectDb"
-import { CustomerData } from "../../providers/anchor/anchor.types"
-import { user } from "../../db/schema/user.model"
-import { ProvidersType } from "../../services/user/user.types"
-import { eq } from "drizzle-orm"
+import { Job, MetricsTime, Worker } from "bullmq";
+import { connection, QueueRegistry } from "../queue-registry";
+import AnchorApi from "../../providers/anchor/anchor.modules";
+import { systemLogger } from "../../utils/logger";
+import db from "../../db/connectDb";
+import { CustomerData } from "../../providers/anchor/anchor.types";
+import { user } from "../../db/schema/user.model";
+import { ProvidersType } from "../../services/user/user.types";
+import { eq } from "drizzle-orm";
+import { Anchor_createDepositAccountQueue, Anchor_verifyCustomerKycQueue } from "../queue-list";
 
+const Anchor_createCustomerWorker = new Worker(
+    QueueRegistry.create_anchor_customer,
+    async (job: Job) => {
+        const data: CustomerData<'level_2'> = job.data;
 
+        try {
+            return await db.transaction(async (tx) => {
+                const customer = await tx.query.user.findFirst({ where: eq(user.id, data.userId) });
 
-const Anchor_createCustomerWorker = new Worker(QueueRegistry.create_anchor_customer, async (job: Job) => {
+                if (!customer) {
+                    throw new Error(`Customer with ID ${data.userId} not found`);
+                }
 
-     const data: CustomerData<'level_2'> = job.data
+                const response = await AnchorApi.customer.createCustomer(
+                    { ...job.data },
+                    "IndividualCustomer",
+                    "level_2"
+                );
 
-    try {
+                if (response?.data?.data.errors?.length) {
+                    throw new Error(response.data.data.errors || "Failed to create customer");
+                }
 
-        await db.transaction( async(tx) => {
+                const providerPayload: ProvidersType = {
+                    ...(typeof customer.providers === "object" && customer.providers !== null
+                        ? customer.providers
+                        : {}),
+                    anchor_provider_id: response.data?.data.id,
+                };
 
+                await tx.update(user).set({ providers: providerPayload, kyc_level: 1 });
 
-            // Find user 
+                const returnValuePayload = {
+                    bvn:data.bvn,
+                    dateOfBirth: data.dateOfBirth,
+                    gender: data.gender,
+                    customerId:providerPayload.anchor_provider_id,
+                    userId: customer.id
+                }
 
-            const customer = await tx.query.user.findFirst({ where: eq(user.id, data.userId) })
-
-            if (!customer) {
-                tx.rollback()
-                throw new Error(`Customer with ID ${data.userId} not found`)
+                return returnValuePayload
+            });
+        } catch (error) {
+            if (error instanceof Error && "response" in error) {
+                console.log((error as any)?.response?.data?.errors?.[0], "this na me dey log this error");
+                throw error
+            } else {
+                console.log(error, "this na me dey log this error");
+                systemLogger.error(`Job ${job.id} failed: ${error}`);
+                throw error;
             }
-
-            const response = await anchor_customer_api.createCustomer({
-                ...job.data
-            }, "IndividualCustomer", 'level_2')
-
-
-
-            if (response.status === 200 || 202) {
-                 tx.rollback()
-                throw new Error(response.data.errors )
-            }
-
-
-           
-
-            const providerPayload: ProvidersType = {
-                ...(typeof customer.providers === 'object' && customer.providers !== null ? customer.providers : {}),
-                anchor_provider_id: response.data?.data.id
-            }
-
-         const [updatedCustomer] =  await tx.update(user).set({providers: providerPayload, kyc_level: 1}).returning({
-            providers: user.providers,
-            id: user.id
-         })
-
-
-          
-         return updatedCustomer
-
-
-        })
-
-
-     
-        
-        
-
-    } catch (error) {
-        console.log(error)
-        systemLogger.error(error)
+        }
+    },
+    {
+        connection: connection,
+        metrics: {
+            maxDataPoints: MetricsTime.ONE_WEEK * 2,
+        },
+        removeOnComplete: {
+            age: 60,
+        },
+        autorun: false,
     }
+);
 
+Anchor_createCustomerWorker.on("completed", async (job, returnValue) => {
+    console.log(returnValue, "this is the return value for the create customer account");
 
-    return job.data
+    await Anchor_verifyCustomerKycQueue.add(QueueRegistry.create_anchor_verify_kyc, returnValue, );
+});
 
-}, {
-    connection: connection,
-    metrics: {
-        maxDataPoints: MetricsTime.ONE_WEEK * 2,
-    },
-    removeOnComplete: {
-        age: 60,
-    },
-    autorun: false,
-})
-
-
-Anchor_createCustomerWorker.on('completed', async (job) => {
-
-
-
-})
-
-
-Anchor_createCustomerWorker.on("error", (err) => {
-
-    console.log(err.message, "this is the error error")
-
-
-})
-
-
+// Event: Job failed
 Anchor_createCustomerWorker.on("failed", (job) => {
+    console.log(job?.id, "this is the error error");
+    systemLogger.error(`This is the job that failed ${job?.id}`);
+});
 
-    console.log("this failed")
+// Event: Worker error
+Anchor_createCustomerWorker.on("error", (err) => {
+    console.log(err.message, "this is the error error");
+    systemLogger.error(`This is the error message ${err.message}: and this is the error name ${err.name}`);
+});
 
-})
-
-
-export default Anchor_createCustomerWorker
+export default Anchor_createCustomerWorker;

@@ -1,0 +1,1 @@
+ALTER TABLE "setup" ADD COLUMN "is_email_added" boolean DEFAULT false;

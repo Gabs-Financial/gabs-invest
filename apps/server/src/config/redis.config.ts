@@ -11,9 +11,12 @@ const redisConfig: string | RedisOptions | null =
         ? config.REDIS_URL
         : config.REDIS_URL ?? null;
 
-const redis: RedisClient = redisConfig
-    ? new Redis(redisConfig as string)
-    : new Redis();
+// const redis: RedisClient = redisConfig
+//     ? new Redis(redisConfig as string)
+//     : new Redis();
+
+
+const redis = new Redis(config.REDIS_URL || "redis://localhost:6379");
 
 redis.on("error", (error: Error) => {
     systemLogger.error(`Redis error: ${error.message}`, error);

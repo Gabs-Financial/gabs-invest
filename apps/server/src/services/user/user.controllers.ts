@@ -1,90 +1,17 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../middlewares/asyncHandler";
-import { AddBvnTypeSchema, UserAddressTypeSchema, UserEmailAndPasswordSchema, UserProfileDataSchema } from "./user.types";
+import { AddBvnTypeSchema, usernameSchema, UserProfileDataSchema, VerifyBvnTypeSchema } from "./user.types";
 import { authControllers, authService } from "../auth/auth.modules";
 import userServices from "./user.services";
 import { HTTPSTATUS } from "../../config/statusCode.config";
 import { passcodeVerificationValidation, pinValidation } from "../auth/auth.validations";
+import db from "../../db/connectDb";
+import { eq, exists } from "drizzle-orm";
+import { user } from "../../db/schema/user.model";
 
 
 class UserControllers {
 
-    public createEmailAndPassword = asyncHandler(async (req: Request, res: Response) => {
-
-
-        const data = UserEmailAndPasswordSchema.parse({ ...req.body })
-        const user = req.user
-
-
-        try {
-
-            await userServices.createUserEmailAndPassword({ ...data }, user.id)
-
-            return res.status(HTTPSTATUS.OK).json({
-                success: true,
-                message: "Email and Password succesfully created",
-
-            })
-
-        } catch (error) {
-            console.log(error, "this is the error")
-            return res.status(HTTPSTATUS.BAD_GATEWAY).json({
-                success: false,
-                message: "Failed to create email and password",
-
-            })
-        }
-
-
-    })
-
-
-    public createUserProfile = asyncHandler(async (req: Request, res: Response) => {
-
-        const data = UserProfileDataSchema.parse({ ...req.body })
-        const user = req.user
-
-        await userServices.createUserProfile({ ...data }, user.id)
-
-        return res.status(HTTPSTATUS.OK).json({
-            success: true,
-            message: "Profile created successful",
-
-        })
-    })
-
-
-
-    public createUserAddress = asyncHandler(async (req: Request, res: Response) => {
-
-        const data = UserAddressTypeSchema.parse({ ...req.body })
-        const user = req.user
-
-        await userServices.addUserAddress(user.id, { ...data },)
-
-        return res.status(HTTPSTATUS.OK).json({
-            success: true,
-            message: "User Address added successfully",
-
-        })
-    })
-
-    public createPasscode = asyncHandler(async (req: Request, res: Response) => {
-
-
-        const { passcode } = passcodeVerificationValidation.parse({ ...req.body })
-        const user = req.user
-
-        await userServices.createPasscode(user.id, passcode)
-
-
-        return res.status(HTTPSTATUS.OK).json({
-            success: true,
-            message: "Passcode Created Succesfully",
-
-        })
-
-    })
 
     public createSecurePinController = asyncHandler(async (req: Request, res: Response) => {
 
@@ -104,22 +31,6 @@ class UserControllers {
     })
 
 
-    public addBvn = asyncHandler(async (req: Request, res: Response) => {
-
-
-        const { bvn } = AddBvnTypeSchema.parse({ ...req.body })
-        const user = req.user
-
-        await userServices.addBVN(user.id, bvn)
-
-
-        return res.status(HTTPSTATUS.OK).json({
-            success: true,
-            message: "Passcode Created Succesfully",
-
-        })
-
-    })
 
 
     public getUserController = asyncHandler(async (req: Request, res: Response) => {
@@ -139,20 +50,55 @@ class UserControllers {
     })
 
 
-    public completeOnboardingController = asyncHandler(async (req: Request, res: Response) => {
 
-        const user = req.user
 
-        const data = await userServices.completeUserOnboarding(user.id)
+    public checkTagExist = asyncHandler(async (req: Request, res: Response) => {
+        const parseResult = usernameSchema.safeParse(req.query);
 
+        if (!parseResult.success) {
+            return res.status(400).json({ error: "Invalid or missing username" });
+        }
+
+        const { tag } = parseResult.data;
+
+        const reservedNames = ["gabs", "invest"];
+
+        const usernameQuery = db
+            .select()
+            .from(user)
+            .where(eq(user.gabs_tag, tag));
+
+        const [usernameExist] = await db
+            .select({ exists: exists(usernameQuery) }).from(user).execute()
+
+        const existsInDb = usernameExist?.exists ?? false;
+        const isReserved = reservedNames.includes(tag.toLowerCase());
+
+        return res.status(200).json({ exists: existsInDb || isReserved });
+    });
+
+
+    public createTag = asyncHandler(async (req: Request, res: Response) => {
+        const { tag } = usernameSchema.parse(req.body);
+        const userId = req.user.id
+
+
+        if (!tag) {
+            return res.status(400).json({ success: false, message: "Invalid or missing username" });
+        }
+
+        await db.transaction(async (tx) => {
+            await tx.update(user).set({ gabs_tag: tag }).where(eq(user.id, userId))
+        })
 
         return res.status(HTTPSTATUS.OK).json({
             success: true,
-            message: "Onboarding completed successfully",
-            data: data
+            message: "Gabs tag created",
         })
 
-    })
+    });
+
+
 
 
 

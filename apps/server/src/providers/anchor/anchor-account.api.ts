@@ -46,10 +46,10 @@ class AnchorAccountApi extends AnchorBaseClass {
         }
 
 
-        const response: AxiosResponse = await axios.post(`/accounts`, JSON.stringify(payload));
+        const response: AxiosResponse = await this.axios.post(`/accounts`, JSON.stringify(payload));
 
 
-        return response.data
+        return response
     }
 
 
@@ -63,22 +63,31 @@ class AnchorAccountApi extends AnchorBaseClass {
 
     public async fetchDepositAccountNumber(settlementId: string) {
 
-
         try {
-            const response = await this.axios.get(`/account-number?settlementAccountId=${settlementId}`)
+            const response = await this.axios.get(`/accounts/${settlementId}?include=VirtualNuban`)
 
-            return response.data
+            return response
 
         } catch (error: any) {
             systemLogger.error(error?.response.data)
             throw new BadRequestException("Failed to fetch Account Number")
         }
 
-
     }
 
+    public async fetchUserBalance (accountId:string) {
 
 
+        try {
+            const response = await this.axios.get(`/accounts/balance/${accountId}`)
+
+            return response
+
+        } catch (error: any) {
+            systemLogger.error(error?.response.data)
+            throw new BadRequestException("Failed to fetch account balance")
+        }
+    }
 }
 
 export default AnchorAccountApi;

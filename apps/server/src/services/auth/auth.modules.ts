@@ -1,4 +1,3 @@
-import ms from "ms";
 import AuthControllers from "./auth.controllers";
 import AuthServices from "./auth.services";
 

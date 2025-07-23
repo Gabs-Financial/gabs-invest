@@ -6,26 +6,30 @@ export const riskToleranceEnum = pgEnum("risk_tolerance", ['high', "moderate", "
 export const investmentFrequencyEnum = pgEnum("investment_frequency", ['weekly', "monthly", "quarterly", "yearly"])
 export const portfolioCurrencyEnum = pgEnum('portfolio_currency', ['NGN', "US"])
 export const investmentHorizonEnum = pgEnum("investment_horizon", ['short', "medium", 'long'])
+export const EmploymentStatusEnum = pgEnum("employment_status", ["Employed", "Unemployed", "Self-Employed"])
+export const PortfolioTypeEnum = pgEnum("portfolio_type", ["single", "multi"])
 
 
 export const portfolio = pgTable("portfolio", {
-
     id: uuid("id").unique().primaryKey().defaultRandom().notNull(),
     user_id: uuid().notNull().references(() => user.id, { onDelete: 'cascade' }),
-    risk_tolerance: riskToleranceEnum().notNull(),
-    occupation: varchar().notNull(),
+    risk_tolerance: riskToleranceEnum(),
+    occupation: varchar(),
     investment_target: integer(),
     investment_frequency: investmentFrequencyEnum(),
     investment_horizon: investmentHorizonEnum(),
     investment_objectives: varchar().array(),
     enable_reminder: boolean().default(true),
-    enable_automatic_rebalancing: boolean().default(false),
     auto_invest: boolean().default(false),
     monthly_income: integer(),
     is_portfolio_created: boolean().default(false),
     monthly_investment_amount: integer(),
-    ai_recommendations: boolean().default(true),
+    employment_status: EmploymentStatusEnum(),
     display_currency: portfolioCurrencyEnum().default('NGN'),
+    enable_multi_portfolio: boolean().default(false),
+    source_of_income: varchar(),
+    portfolio_type: PortfolioTypeEnum().default('single').notNull(),
+    preferred_assets: varchar().array(),
     ...timestamps
 
 })

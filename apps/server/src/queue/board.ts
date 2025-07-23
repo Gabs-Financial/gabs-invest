@@ -1,8 +1,8 @@
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter.js";
 import { ExpressAdapter } from "@bull-board/express";
-import { Anchor_createAccountQueue } from "./queue-list";
-import {Express} from "express"
+import { Anchor_createAccountQueue, Anchor_createDepositAccountQueue, Anchor_verifyCustomerKycQueue } from "./queue-list";
+import { Express } from "express"
 
 
 const serverAdapter = new ExpressAdapter();
@@ -12,7 +12,8 @@ const basePath = "/api/v1/ui";
 const { addQueue, removeQueue, replaceQueues, setQueues } = createBullBoard({
     queues: [
         new BullMQAdapter(Anchor_createAccountQueue),
-      
+        new BullMQAdapter(Anchor_createDepositAccountQueue),
+        new BullMQAdapter(Anchor_verifyCustomerKycQueue),
 
     ],
     serverAdapter,
@@ -35,6 +36,6 @@ const { addQueue, removeQueue, replaceQueues, setQueues } = createBullBoard({
 
 serverAdapter.setBasePath(basePath);
 
-export const setupBullBoard = (app:Express) => {
+export const setupBullBoard = (app: Express) => {
     app.use(basePath, serverAdapter.getRouter());
 };

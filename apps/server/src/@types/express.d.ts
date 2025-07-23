@@ -5,8 +5,7 @@ import { Request } from 'express';
 declare global {
     namespace Express {
         interface Request {
-            user?: Partial<typeof user.>
-
+            user?: Partial<typeof user>
         }
     }
 }

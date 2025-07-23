@@ -1,0 +1,1 @@
+ALTER TABLE "user" DROP CONSTRAINT "user_bvn_phone_number_unique";

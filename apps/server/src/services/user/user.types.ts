@@ -9,21 +9,18 @@ export const UserProfileDataSchema = z.object({
     gender: z.enum(['male', "female"])
 });
 
-export const UserEmailAndPasswordSchema = z.object({
-    email: z.string().email(),
-    password: z.string(),
-});
 
 
-export const UserAddressTypeSchema = z.object({
-    street: z.string(),
-    city: z.string(),
-    state: z.string(),
-    postalCode: z.string(),
-});
+
+
 
 export const AddBvnTypeSchema =z.object({
     bvn: z.string().length(11)
+})
+
+export const VerifyBvnTypeSchema =z.object({
+    code: z.string().length(6),
+    phoneNumber: z.string(),
 })
 
 
@@ -38,9 +35,16 @@ export const providersSchema = z.object({
     
 })
 
+export const usernameSchema = z.object({
+    tag: z
+        .string()
+        .min(0, "Tag must be at least 3 characters")
+        .max(20, "Tag must be at most 20 characters")
+        .regex(/^[a-zA-Z0-9]+$/, "Tag must contain only letters and numbers"),
+});
+
 // Infer TypeScript types from Zod schemas
 export type UserProfileType = z.infer<typeof UserProfileDataSchema>;
-export type UserAddressType = z.infer<typeof UserAddressTypeSchema>;
+
 export type AddBvnType = z.infer<typeof AddBvnTypeSchema>
-export type UserEmailAndPasswordType = z.infer<typeof UserEmailAndPasswordSchema>
 export type ProvidersType = z.infer<typeof providersSchema>

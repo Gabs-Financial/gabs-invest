@@ -1,4 +1,3 @@
-import { platform } from "os";
 import { z } from "zod";
 
 export const registrationValidationSchema = z.object({
@@ -20,6 +19,14 @@ export const pinValidation = z.object({
     pin: z.string().length(4)
 })
 
+export const refreshTokenSchema = z.object({
+    refreshToken: z.string(),
+})
+
+export const loginSchema = z.object({
+    phoneNumber: z.string(),
+    password: z.string()
+})
 
 
 

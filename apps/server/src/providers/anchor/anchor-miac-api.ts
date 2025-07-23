@@ -15,18 +15,10 @@ class AnchorMiscApi extends AnchorBaseClass {
 
     public async fetchBankList() {
 
-
-
         const response: AxiosResponse = await this.axios.get(`/banks`);
-
-
-
         return response;
-
-
-
-
     }
+
 
 }
 

@@ -23,13 +23,8 @@ class MonnifyReserrvedAccount extends MonnifyBase {
 
         try {
 
-
             const response = await this.axios.post('api/v2/bank-transfer/reserved-accounts', options, { headers })
-
-
             return response.data
-
-
 
         } catch (error) {
             systemLogger.error(error)
@@ -39,9 +34,31 @@ class MonnifyReserrvedAccount extends MonnifyBase {
 
     }
 
+    public async validateBankAccount(options: {bankCode: string, accountNumber:string}) {
+
+
+        const accessToken = await this.authenticate()
+
+        const headers = {
+            Authorization: `Bearer ${accessToken}`
+        }
+
+        const {accountNumber, bankCode} = options
 
 
 
+        try {
+
+            const response = await this.axios.get(`/api/v1/disbursements/account/validate?accountNumber=${accountNumber}&bankCode=${bankCode}`,  { headers })
+            return response
+
+        } catch (error) {
+            systemLogger.error(error)
+            throw new BadRequestException("Error Creating Reserved Account", ErrorCode.BAD_REQUEST)
+
+        }
+
+    }
 
 }
 

@@ -1,1 +1,0 @@
-ALTER TABLE "user" ADD COLUMN "has_created_transactionPin" boolean DEFAULT false;

@@ -13,6 +13,10 @@ import { systemLogger } from "./utils/logger";
 import { InternalServerException } from "./utils/error";
 import { ErrorCode } from "./@types/errorCode.enum";
 import { setupBullBoard } from "./queue/board";
+import transactionRouter from "./services/transactions/transactions.routes";
+import onboardingRouter from "./services/onboarding/onboarding.routes";
+import walletRouter from "./services/wallet/wallet.routes";
+import beneficiaryRouter from "./services/beneficiary/beneficiary.routes";
 
 const app: Express = express()
 
@@ -31,6 +35,11 @@ app.use(cookieParser());
 app.use(`/${config.BASE_PATH}/auth`, authRouter);
 app.use(`/${config.BASE_PATH}/payments`, authMiddleware, paymentRouter);
 app.use(`/${config.BASE_PATH}/users`, authMiddleware, userRouter);
+app.use(`/${config.BASE_PATH}/transaction`, authMiddleware, transactionRouter);
+app.use(`/${config.BASE_PATH}/onboarding`, authMiddleware, onboardingRouter);
+app.use(`/${config.BASE_PATH}/wallet`, authMiddleware, walletRouter);
+app.use(`/${config.BASE_PATH}/beneficiary`, authMiddleware, beneficiaryRouter);
+
 
 app.use(errorHandler)
 

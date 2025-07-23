@@ -5,19 +5,19 @@ import { user } from "./user.model";
 import { timestamps } from "../columnHelpers";
 
 
-export const accountTypeEnum = pgEnum('type', ["Savings", "Current"]);
+export const accountTypeEnum = pgEnum('type', ["savings", "current"]);
 export const accountStatusEnum = pgEnum('account_status', ["active", "open", "blocked", "inactive"]);
 
 
 export const accounts = pgTable("accounts", {
     id: uuid("id").unique().primaryKey().defaultRandom(),
-    account_type: accountTypeEnum().default('Savings').notNull(),
+    account_type: accountTypeEnum().default('savings').notNull(),
     user_id: uuid().notNull().references(() => user.id, { onDelete: 'cascade' }),
     account_provider: varchar().notNull(),
     provider_account_id: varchar().notNull(),
     currency: varchar().notNull().default("NGN"),
     status: accountStatusEnum().default("open"),
-    balance: integer().default(0),
+    balance: integer().default(0).notNull(),
     ledger_balance: integer().default(0),
     hold_balance: integer().default(0),
     available_balance: integer().default(0),

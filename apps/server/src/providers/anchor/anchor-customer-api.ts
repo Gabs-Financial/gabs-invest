@@ -101,9 +101,49 @@ class AnchorCustomerApi extends AnchorBaseClass implements CustomerApi {
         };
 
         const response: AxiosResponse = await this.axios.post(`/customers`, JSON.stringify(payload));
-        
+
         return response;
     }
+
+
+
+    public async verifyCustomerKyc<T extends KycLevel>(
+        data: T extends "level_2"
+            ? Pick<Kyc2Customer, "bvn" | "dateOfBirth" | "gender">
+            : T extends "level_3"
+            ? Pick<Kyc3Customer, "idType" | "idNumber" | "expiryDate">
+            : never,
+        level: "TIER_2" | "TIER_3",
+        customerId: string
+    ) {
+        const payload = {
+            data: {
+                type: "Verification",
+                attributes: {
+                    level: level,
+                    ...(level === "TIER_2" && {
+                        level2: {
+                            bvn: (data as Kyc2Customer).bvn,
+                            dateOfBirth: (data as Kyc2Customer).dateOfBirth,
+                            gender: (data as Kyc2Customer).gender,
+                        },
+                    }),
+                    ...(level === "TIER_3" && {
+                        level3: {
+                            idType: (data as Kyc3Customer).idType,
+                            idNumber: (data as Kyc3Customer).idNumber,
+                            expiryDate: (data as Kyc3Customer).expiryDate,
+                        },
+                    }),
+                },
+            },
+        };
+
+        const response: AxiosResponse = await this.axios.post(`/customers/${customerId}/verification/individual`, JSON.stringify(payload));
+
+        return response;
+    }
+
 
     public async updateCustomer(): Promise<Record<string, any>> {
         return {};

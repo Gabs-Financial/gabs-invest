@@ -2,39 +2,14 @@ import { BadRequestException } from "../../utils/error";
 import { generateRef } from "../../utils/generateRef";
 import { systemLogger } from "../../utils/logger";
 import { AnchorBaseClass } from "./anchor-base";
-
-
-type CategoryTypes = 'airtime' | "data" | "electricity" | "television"
-
-type TopUpProvidersType = "mtn" | "glo" | "airtel" | "9mobile" | "ntel"
-
-type PaymentCatgoriesType = Capitalize<CategoryTypes>
-
-type TopUpPurchaseBase = {
-    type: PaymentCatgoriesType; // Specifies the type of bill payment
-    attributes: {
-        phoneNumber: string; // The phone number to receive the data bundle or airtime
-        amount: number; // Fixed amount in the lowest currency denomination
-        provider: string; // Slug identifier of the product/plan
-        reference: string; // Unique transaction identifier
-    };
-    account: {
-        id: string;
-        type: "DepositAccount" | "SubAccount" | "ElectronicAccount";
-    };
-};
-
-type AirtimePurchaseOptions = Omit<TopUpPurchaseBase, "type"> & {
-    type: Extract<PaymentCatgoriesType, "Airtime">;
-};
-
-type DataPurchaseOptions = Omit<TopUpPurchaseBase, "type"> & {
-    type: Extract<PaymentCatgoriesType, "Data">;
-};
+import {  BillPurchaseType, CategoryTypes, DataPurchaseOptions, PaymentCatgoriesType } from "./anchor.types";
 
 
 
-class AnchorBills extends AnchorBaseClass {
+
+
+
+class AnchorBillsApi extends AnchorBaseClass {
 
 
     constructor() {
@@ -74,7 +49,7 @@ class AnchorBills extends AnchorBaseClass {
 
     }
 
-    public async createBillPayment(billPaymentOptions: TopUpPurchaseBase) {
+    public async createBillPayment<T extends PaymentCatgoriesType>(billPaymentOptions: BillPurchaseType<T>, category: T) {
 
 
         try {
@@ -84,8 +59,9 @@ class AnchorBills extends AnchorBaseClass {
                     attributes: {
                         provider: billPaymentOptions.attributes.provider,
                         phoneNumber: billPaymentOptions.attributes.phoneNumber,
-                        reference: generateRef("gba", 7),
-                        amount: billPaymentOptions.attributes.amount
+                        reference: billPaymentOptions.attributes.reference,
+                        amount: billPaymentOptions.attributes.amount,
+                        productSlug: category === 'Data' ? (billPaymentOptions as DataPurchaseOptions).attributes.productSlug : undefined
                     },
                     relationships: {
                         account: {
@@ -101,12 +77,8 @@ class AnchorBills extends AnchorBaseClass {
             const response = await this.axios.post("/bills", JSON.stringify(payload))
 
 
-            if (response.status !== 200) {
-                throw new BadRequestException(`${payload.data.type} purchase failed Please try again`)
+            return response
 
-            }
-
-            const { data } = response.data
         } catch (error: any) {
             console.log(error.response?.errors[0])
             systemLogger.info(`${billPaymentOptions.type} purchase failed ${error.response?.errors[0]} `)
@@ -116,3 +88,8 @@ class AnchorBills extends AnchorBaseClass {
     }
 
 }
+
+
+
+
+export default AnchorBillsApi

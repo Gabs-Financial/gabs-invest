@@ -1,19 +1,17 @@
-import {Router} from "express"
+import { Router } from "express"
 import userServices from "./user.services"
 import userControllers from "./user.controllers"
+import upload from "../../middlewares/upload.middleware"
 
 
 const userRouter = Router()
 
 
-userRouter.post("/create_profile", userControllers.createUserProfile )
-userRouter.post("/verify_email", userControllers.createEmailAndPassword)
-userRouter.post("/add_address", userControllers.createUserAddress)
-userRouter.post("/create_passcode", userControllers.createPasscode)
-userRouter.post("/verify_bvn", userControllers.addBvn)
-userRouter.post("/secure_pin", userControllers.createSecurePinController)
-userRouter.post("/complete_onboarding", userControllers.completeOnboardingController)
 
+
+userRouter.get("/check_tag", userControllers.checkTagExist)
+userRouter.post("/tag", userControllers.createTag)
+userRouter.post("/avatar",upload.single('avatar'), userControllers.createTag)
 
 userRouter.get("/customer", userControllers.getUserController)
 
