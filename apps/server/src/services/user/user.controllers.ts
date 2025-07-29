@@ -8,6 +8,8 @@ import { passcodeVerificationValidation, pinValidation } from "../auth/auth.vali
 import db from "../../db/connectDb";
 import { eq, exists } from "drizzle-orm";
 import { user } from "../../db/schema/user.model";
+import { BadRequestException } from "../../utils/error";
+import { setup } from "../../db/schema/setup.model";
 
 
 class UserControllers {
@@ -84,12 +86,11 @@ class UserControllers {
 
 
         if (!tag) {
-            return res.status(400).json({ success: false, message: "Invalid or missing username" });
+            return new BadRequestException("Tag is required");
         }
 
-        await db.transaction(async (tx) => {
-            await tx.update(user).set({ gabs_tag: tag }).where(eq(user.id, userId))
-        })
+        userServices.updateUser({gabs_tag: tag}, userId)
+        await db.update(setup).set({ is_tag_created: true }).where(eq(setup.user_id, userId)).execute()
 
         return res.status(HTTPSTATUS.OK).json({
             success: true,

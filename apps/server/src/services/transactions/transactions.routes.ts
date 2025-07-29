@@ -6,8 +6,7 @@ const transactionRouter = express.Router()
 
 
 transactionRouter.get('/', transactionControllers.listAllUserTransactions)
-transactionRouter.get("/:userId", transactionControllers.listAllUserTransactions)
-transactionRouter.get("/:transactionId", transactionControllers.fetchTransaction)
+transactionRouter.get("/:transactionId", transactionControllers.fetchTransactionById)
 
 
 export default transactionRouter

@@ -72,8 +72,25 @@ class BeneficiaryServices {
         // Check if beneficiary exists
     }
 
-    public async getBeneficiary() {
-        
+    public async getBeneficiaryById(beneficiaryId:string) {
+
+        const beneficiaryRecord = await db.query.beneficiary.findFirst({
+            where: eq(beneficiary.id, beneficiaryId)
+        })
+
+
+        return beneficiaryRecord
+
+    }
+
+    public async getUserBeneficiaryList(userId:string) {
+
+        const beneficiaryList = await db.query.beneficiary.findMany({
+            where: eq(beneficiary.user_id, userId)
+        })
+
+        return beneficiaryList
+
     }
 
 

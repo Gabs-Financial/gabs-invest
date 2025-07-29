@@ -6,7 +6,7 @@ const beneficiaryRouter = Router()
 
 
 beneficiaryRouter.post('/', beneficiaryControllers.createBeneficiary)
-beneficiaryRouter.get("/", )
+beneficiaryRouter.get("/list", beneficiaryControllers.getUserBeneficiaryList)
 
 
 export default beneficiaryRouter

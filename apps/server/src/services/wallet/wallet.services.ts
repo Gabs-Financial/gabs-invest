@@ -45,6 +45,10 @@ class WalletServices {
 
             }
 
+
+            console.log(response.data.data.availableBalance, "this is the available balance ")
+            console.log(response.data.data.ledgerBalance, "this is the ledger balance ")
+
             return {
                 available_balance: response.data.data.availableBalance,
                 ledger_balance: response.data.data.ledgerBalance

@@ -6,7 +6,7 @@ import { portfolio } from "../../db/schema/portfolio.model";
 import { BadRequestException } from "../../utils/error";
 import { systemLogger } from "../../utils/logger";
 import { CreateInvestmentType, CreatePortfolioProfileType } from "./portfolio.types";
-import { assets } from "../../db/schema/mutualFund.model";
+import { assets } from "../../db/schema/mutalFunds.model";
 import { setup } from "../../db/schema/setup.model";
 
 

@@ -74,7 +74,6 @@ class AuthControllers {
 
         const refreshTokenHeader = req.headers['x-refresh-token'];
 
-        console.log(refreshTokenHeader, "this is the refresh token header")
         console.log(token, "this is the refresh token from the body")
 
 

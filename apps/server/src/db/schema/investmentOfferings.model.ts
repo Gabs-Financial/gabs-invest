@@ -1,16 +1,15 @@
-import { pgTable, text, uuid, varchar,  } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, uuid, varchar,  } from "drizzle-orm/pg-core";
 import { timestamps } from "../columnHelpers";
 
 
 
 
 export const investmentOfferings = pgTable("investment_offering", {
-
     id: uuid("id").unique().primaryKey().defaultRandom(),
-    label: varchar().notNull(),
+    category: varchar().notNull(),
     slug: varchar().notNull(),
     summary: text().notNull(),
-    icon: varchar().notNull(),
+    main_image: varchar().notNull(),
+    available: boolean().notNull(),
     ...timestamps
-
 })

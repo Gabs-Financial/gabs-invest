@@ -13,44 +13,33 @@ const accountType = z.enum(["DepositAccount", "VirtualNuban", "SubAccount"])
 export const createTransferType = z.object({
     type: z.enum(["NIPTransfer", "BookTransfer"]),
     amount: z.number(),
-    currency: z.literal("NGN").optional(),
     reason: z.string().optional(),
-    id: z.string(),
-    save_beneficiary: z.boolean().optional()
 })
 
 
 export const createNipTransferSchema = createTransferType.extend({
-    accountId: z.string(),
-    accountType: accountType,
     bankName: z.string(),
     bankCode: z.string(),
     accountName: z.string(),
-    accountNumber:z.string()
+    accountNumber: z.string(),
+    counterPartyId: z.string(),
+    saveBeneficiary: z.boolean().optional(),
+    senderAccountId: z.string(),
 })
 
 export const createBookTransferSchema = createTransferType.extend({
     destinationAccountId: z.string(),
     destinationAccountType: accountType,
-    accountId: z.string(),
-    accountType: accountType,
 })
 
-// "data": {
-//     "type": "CounterParty",
-//         "attributes": {
-//         "accountName": "string",
-//             "accountNumber": "string",
-//                 "bankCode": "string",
-//                     "verifyName": true
-//     },
+
 
 
 export const createCounterPartySchema = z.object({
     accountName: z.string(),
     accountNumber: z.string(),
-    bankCode:z.string(),
-    verifyName:z.boolean().optional()
+    bankCode: z.string(),
+    verifyName: z.boolean().optional()
 })
 
 export type CreateNipTransferType = z.infer<typeof createNipTransferSchema>

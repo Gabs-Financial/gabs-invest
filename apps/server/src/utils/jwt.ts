@@ -23,15 +23,15 @@ export enum AudienceType {
     AuthorizedServer = "authorizedServer"
 }
 
-console.log(config.ACCESS_TOKEN_EXPIRES_IN, "access_token expires")
-console.log(ms(config.ACCESS_TOKEN_EXPIRES_IN as ms.StringValue), "acess token mssssssssssssss")
+
 
 export const AccessTokenSignOptions: SignOptions = {
-    expiresIn: ms(config.ACCESS_TOKEN_EXPIRES_IN as ms.StringValue),
+    expiresIn: 5 * 60, 
 };
 
 export const RefreshTokenSignOptions: SignOptions = {
-    expiresIn: ms(config.REFRESH_TOKEN_EXPIRES_IN as ms.StringValue),
+    // expiresIn: ms(config.REFRESH_TOKEN_EXPIRES_IN as ms.StringValue),
+    expiresIn: 7 * 60 * 60, 
 };
 
 class JWTUtility {

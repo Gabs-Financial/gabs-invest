@@ -35,7 +35,7 @@ app.use(cookieParser());
 app.use(`/${config.BASE_PATH}/auth`, authRouter);
 app.use(`/${config.BASE_PATH}/payments`, authMiddleware, paymentRouter);
 app.use(`/${config.BASE_PATH}/users`, authMiddleware, userRouter);
-app.use(`/${config.BASE_PATH}/transaction`, authMiddleware, transactionRouter);
+app.use(`/${config.BASE_PATH}/transactions`, authMiddleware, transactionRouter);
 app.use(`/${config.BASE_PATH}/onboarding`, authMiddleware, onboardingRouter);
 app.use(`/${config.BASE_PATH}/wallet`, authMiddleware, walletRouter);
 app.use(`/${config.BASE_PATH}/beneficiary`, authMiddleware, beneficiaryRouter);

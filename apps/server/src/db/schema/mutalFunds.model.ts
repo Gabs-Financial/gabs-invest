@@ -5,7 +5,7 @@ import { timestamps } from "../columnHelpers";
 export const assetCategoryEnum = pgEnum("asset_category", ["mutual_funds", 'alt_investment', "money_market_fund", "treasury_bills"])
 export const assetStatusENum = pgEnum("status", ['active', 'inactive'])
 
-export const assets = pgTable("mutual_fund_asset", {
+export const assets = pgTable("mutual_funds", {
     id: uuid("id").unique().primaryKey().defaultRandom().notNull(),
     name:varchar().notNull(),
     category: assetCategoryEnum().notNull(),
@@ -21,7 +21,7 @@ export const assets = pgTable("mutual_fund_asset", {
     maximum_hold_period: varchar(),
     minimum_investment: integer(),
     maximum_investment: integer(),
-    management_fee: integer(),
+    management_fee: integer().notNull(),
     status: assetStatusENum(),
     ...timestamps
 })

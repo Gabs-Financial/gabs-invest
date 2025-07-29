@@ -1,5 +1,5 @@
 import AnchorMiacApi from "../../providers/anchor/anchor-miac-api";
-import { BadRequestException } from "../../utils/error";
+import { BadRequestException, NotFoundException } from "../../utils/error";
 import { ErrorCode } from "../../@types/errorCode.enum";
 import { CreateBookTransferType, CreateNipTransferType, CreateTransferType } from "./payment.types";
 import { AnchorBookTransfer, AnchorTransferResponseType, AnchorTransferType, CreateCounterPartyType, TransferType } from "../../providers/anchor/anchor.types";
@@ -32,50 +32,37 @@ class PaymentServices {
 
 
 
-    protected async createNIPTransfer(data: CreateNipTransferType, userId: string) {
+    async createNIPTransfer(data: CreateNipTransferType, userId: string) {
 
         try {
 
             const {
                 accountNumber,
-                accountId,
                 accountName,
-                accountType,
                 amount,
                 bankName,
-                currency,
                 reason,
                 bankCode,
-                id,
+                counterPartyId
             } = data;
 
             const reference = generateRef("trx_", 8, false);
 
-            const counterPartyPayload: CreateCounterPartyType = {
-                accountName,
-                accountNumber,
-                bankCode,
-                verifyName: true,
-            };
+            const accountRecord = await db.query.accounts.findFirst({
+                where: eq(accounts.user_id, userId)
+            })
 
-            const counterPartyResponse = await AnchorApi.counterparty.create(counterPartyPayload);
-
-            if (counterPartyResponse.data?.data.errors?.length) {
-                systemLogger.error("Failed to create counterparty", {
-                    errors: counterPartyResponse.data.data.errors,
-                });
-                throw new BadRequestException("Failed to create counterparty", ErrorCode.BAD_REQUEST);
+            if (!accountRecord) {
+                throw new NotFoundException("Wallet not found ", ErrorCode.AUTH_NOT_FOUND)
             }
 
-            const counterPartyId = counterPartyResponse.data.data.id;
-
             const nipTransferPayload: AnchorTransferType = {
-                accountId,
-                accountType,
+                accountId: accountRecord?.provider_account_id,
+                accountType: "DepositAccount",
                 amount,
                 counterPartyId,
                 reference,
-                currency: currency as "NGN",
+                currency: "NGN",
                 type: "NIPTransfer",
                 reason,
             };
@@ -89,49 +76,40 @@ class PaymentServices {
                 throw new BadRequestException("Failed to make NIP transfer", ErrorCode.BAD_REQUEST);
             }
 
-            await db.transaction(async (tx) => {
-                await beneficiaryServices.createBeneficiary(
-                    {
-                        accountName,
-                        accountNumber,
-                        bankCode,
-                        bankName,
+          const transactionData =   await transactionServices.createTransaction(
+                {
+                    account_id: accountRecord.id,
+                    amount,
+                    recipient: {
+                        account_name: accountName,
+                        account_number: accountNumber,
+                        bank_code: bankCode,
+                        bank_name: bankName,
                     },
-                    userId,
-                    tx
-                );
+                    reference,
+                    transfer_type: "debit",
+                    transaction_type: "NIP_Transfer",
+                    user_id: userId,
+                    status: "PENDING",
+                    
+                },
+            );
 
-                await transactionServices.createTransaction(
-                    {
-                        account_id: id,
-                        amount,
-                        recipient: {
-                            account_name: accountName,
-                            account_number: accountNumber,
-                            bank_code: bankCode,
-                            bank_name: bankName,
-                        },
-                        reference,
-                        transfer_type: "debit",
-                        transaction_type: "NIP_Transfer",
-                        user_id: userId,
-                        status: "PENDING",
-                    },
-                    tx
-                );
-            });
+            return transactionData
+
         } catch (error) {
+            console.error(error, "this is the error from the nip transfer")
             systemLogger.error("Error creating NIP transfer", { error });
-            throw new BadRequestException("Error creating NIP transfer", ErrorCode.BAD_REQUEST);
+            throw new BadRequestException("Error processing transfer", ErrorCode.BAD_REQUEST);
         }
     }
 
 
     protected async createBookTransfer(data: CreateBookTransferType, userId: string) {
+
         try {
             const {
-                accountId,
-                accountType,
+
                 amount,
                 destinationAccountId,
                 destinationAccountType,
@@ -253,13 +231,13 @@ class PaymentServices {
         }
     }
 
-    public async resolveAccount(data:{bankCode:string, accountNumber:string}) {
+    public async resolveAccount(data: { bankCode: string, accountNumber: string }) {
 
         try {
 
-    
 
-            const response = await AnchorApi.payments.resolveAccount({accountNumber:data.accountNumber, BankCode: data.bankCode})
+
+            const response = await AnchorApi.payments.resolveAccount({ accountNumber: data.accountNumber, BankCode: data.bankCode })
 
             const formattedResponse = {
                 accountName: response.data.data.attributes.accountName,
@@ -268,9 +246,42 @@ class PaymentServices {
             }
 
             return formattedResponse
-            
+
         } catch (error) {
             throw new BadRequestException("Invalid account", ErrorCode.BAD_REQUEST)
+        }
+
+    }
+
+    public async createCounterParty(data: CreateCounterPartyType) {
+
+        const { accountName, accountNumber, bankCode, verifyName } = data
+
+        try {
+
+            const response = await AnchorApi.counterparty.create({ accountName, accountNumber, bankCode, verifyName: true })
+
+            if (response.data?.data.errors?.length) {
+                systemLogger.error("Failed to counter party ", {
+                    errors: response.data.data.errors,
+                });
+                throw new BadRequestException("Failed to create counterparty", ErrorCode.BAD_REQUEST);
+            }
+
+            console.log(response.data.data, "this is from the conterparty shit things")
+
+            return {
+                counterparty_id: response.data.data.id,
+                account_name: response.data.data.attributes.accountName,
+                account_number: response.data.data.attributes.accountNumber,
+                bank_code: response.data.data.attributes.bank.nipCode,
+                bank_name: response.data.data.attributes.bank.name
+            }
+
+
+        } catch (error) {
+            systemLogger.error("Error creating counter party", { error });
+            throw new BadRequestException("Failed to create counterparty", ErrorCode.BAD_REQUEST);
         }
 
     }

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { HTTPSTATUS } from "../../config/statusCode.config";
 import { asyncHandler } from "../../middlewares/asyncHandler";
 import AnchorMiacApi from "../../providers/anchor/anchor-miac-api";
-import { createBookTransferSchema, createNipTransferSchema, CreateTransferType, createTransferType, validateAccountSchema } from "./payment.types";
+import { createBookTransferSchema, createCounterPartySchema, createNipTransferSchema, CreateTransferType, createTransferType, validateAccountSchema } from "./payment.types";
 import monnifyReservedAccount from "../../providers/monnify/monnify-reserved-account";
 import { BadRequestException } from "../../utils/error";
 import { ErrorCode } from "../../@types/errorCode.enum";
@@ -74,6 +74,24 @@ class PaymentController {
 
     })
 
+    public nipTransferController = asyncHandler(async (req: Request, res: Response) => {
+
+        // const {accountName, accountNumber, bankCode, amount, type,bankName, reason, saveBeneficiary, counterPartyId, senderAccountId} = createNipTransferSchema.parse({...req.body})
+        const data = createNipTransferSchema.parse({...req.body})
+        const userId = req.user.id
+
+        const responseData = await paymentServices.createNIPTransfer(data,userId )
+
+
+        return res.status(HTTPSTATUS.CREATED).json({
+            success: true,
+            message: "Transfer processing ",
+            data: {}
+        })
+
+
+    })
+
 
     public createTransferController = asyncHandler(async (req: Request, res: Response) => {
 
@@ -140,7 +158,27 @@ class PaymentController {
 
     })
 
+    public createCounterParty = asyncHandler(async (req: Request, res: Response) => {
 
+        const {accountName, accountNumber, bankCode,verifyName} = createCounterPartySchema.parse({...req.body})
+
+        console.log("running the counter party in the controller")
+
+        const response = await paymentServices.createCounterParty({
+            accountName,
+            accountNumber,
+            bankCode,
+            verifyName:true
+        })
+
+        return res.status(HTTPSTATUS.CREATED).json({
+            success: true,
+            message: "Counterparty created successfully",
+            data: response,
+        })
+
+
+    })
 }
 
 

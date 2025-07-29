@@ -23,7 +23,7 @@ class TransactionControllers {
     })
 
 
-    public fetchTransaction = asyncHandler(async (req: Request, res: Response) => {
+    public fetchTransactionById = asyncHandler(async (req: Request, res: Response) => {
 
         
         const transactionId = req.params.transctionId

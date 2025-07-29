@@ -12,6 +12,7 @@ class BeneficiaryControllers {
 
         const userId = req.user.id
 
+
         const { accountName, accountNumber, bankCode, bankName } = createBeneficiarySchema.parse({ ...req.body })
 
         const response = await beneficiaryServices.createBeneficiary({
@@ -25,6 +26,21 @@ class BeneficiaryControllers {
             success: true,
             message: "Beneficiary created successfully",
             data: response
+        })
+
+    })
+
+
+    public getUserBeneficiaryList = asyncHandler(async (req: Request, res: Response) => {
+
+        const userId = req.user.id
+
+        const beneficiaryList = await beneficiaryServices.getUserBeneficiaryList(userId)
+
+        return res.status(HTTPSTATUS.CREATED).json({
+            success: true,
+            message: "Beneficiary fetched successfully",
+            data: beneficiaryList
         })
 
     })

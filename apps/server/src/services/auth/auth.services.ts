@@ -222,8 +222,6 @@ export default class AuthServices {
     }
 
 
-
-
     public async resendToken(phoneNumber: string) {
 
         await sendOtp(phoneNumber)
@@ -234,82 +232,96 @@ export default class AuthServices {
     public async login(phoneNumber: string, password: string): Promise<{ accessToken: string, refreshToken: string }> {
 
 
-        return await db.transaction(async (tx) => {
+        try {
+            return await db.transaction(async (tx) => {
 
 
-            const subquery = db.select().from(user).where(eq(user.phone_number, phoneNumber));
-            const userExistsResult = await db
-                .select({ exists: exists(subquery) })
-                .from(user);
+                const subquery = db.select().from(user).where(eq(user.phone_number, phoneNumber));
+                const userExistsResult = await db
+                    .select({ exists: exists(subquery) })
+                    .from(user);
 
-            if (!userExistsResult[0]?.exists) {
-                throw new BadRequestException("User does not exist", ErrorCode.AUTH_USER_NOT_FOUND);
-            }
-
-            const [existingUser] = await db.select().from(user).where(eq(user.phone_number, phoneNumber));
-            if (!existingUser) {
-                throw new BadRequestException("User data could not be fetched.", ErrorCode.AUTH_USER_NOT_FOUND);
-            }
-
-            const isPasswordValid = await PasswordUtils.comparePassword(password, existingUser.password as string);
-
-            console.log(isPasswordValid, "this is the password valid check")
-
-            if (!isPasswordValid) {
-                throw new BadRequestException("Incorrect login credentials", ErrorCode.AUTH_UNAUTHORIZED_ACCESS);
-            }
-
-            const incomingRefreshTokens = existingUser.refresh_token || [];
-
-
-            const reusedTokenDetected = incomingRefreshTokens.some(token => {
-                try {
-
-                    const decoded = jwtUtility.decodeToken(token)
-
-                    const verifiedToken = jwtUtility.verifyRefreshToken(token, { audience: AudienceType.MobileApp, subject: existingUser.id, issuer: decoded?.iss as string });
-                    return verifiedToken?.user_id !== existingUser.id; // foreign token
-                } catch {
-                    return false;
+                if (!userExistsResult[0]?.exists) {
+                    throw new BadRequestException("User does not exist", ErrorCode.AUTH_USER_NOT_FOUND);
                 }
-            });
 
-            if (reusedTokenDetected) {
-                systemLogger.warn(`Refresh token reuse suspected for user: ${existingUser.id}`);
-                await tx.update(user).set({ refresh_token: [] }).where(eq(user.id, existingUser.id));
-            }
-
-            const { accessToken, refreshToken: newRefreshToken } = await this.setAuthCredentials(tx, { userId: existingUser.id })
-
-
-            const validRefreshTokens = incomingRefreshTokens.filter(token => {
-                try {
-                    const decoded = jwtUtility.decodeToken(token)
-
-                    jwtUtility.verifyRefreshToken(token, { audience: AudienceType.MobileApp, subject: existingUser.id, issuer: decoded?.iss as string }); return true;
-                } catch {
-                    return false;
+                const [existingUser] = await db.select().from(user).where(eq(user.phone_number, phoneNumber));
+                if (!existingUser) {
+                    throw new BadRequestException("User data could not be fetched.", ErrorCode.AUTH_USER_NOT_FOUND);
                 }
-            });
 
-            const updatedRefreshTokens = [...validRefreshTokens.slice(-4), newRefreshToken]; // keep latest 4
-            await tx.update(user).set({ refresh_token: updatedRefreshTokens }).where(eq(user.id, existingUser.id));
+                const isPasswordValid = await PasswordUtils.comparePassword(password, existingUser.password as string);
 
-            return {
-                accessToken,
-                refreshToken: newRefreshToken,
-            };
+                console.log(isPasswordValid, "this is the password valid check")
 
-        })
+                if (!isPasswordValid) {
+                    throw new BadRequestException("Incorrect login credentials", ErrorCode.AUTH_UNAUTHORIZED_ACCESS);
+                }
+
+                const incomingRefreshTokens = existingUser.refresh_token || [];
+
+
+                const reusedTokenDetected = incomingRefreshTokens.some(token => {
+                    try {
+
+                        const decoded = jwtUtility.decodeToken(token)
+
+                        const verifiedToken = jwtUtility.verifyRefreshToken(token, { audience: AudienceType.MobileApp, subject: existingUser.id, issuer: decoded?.iss as string });
+                        return verifiedToken?.user_id !== existingUser.id; // foreign token
+                    } catch {
+                        return false;
+                    }
+                });
+
+                if (reusedTokenDetected) {
+                    systemLogger.warn(`Refresh token reuse suspected for user: ${existingUser.id}`);
+                    await tx.update(user).set({ refresh_token: [] }).where(eq(user.id, existingUser.id));
+                }
+
+                const { accessToken, refreshToken: newRefreshToken } = await this.setAuthCredentials(tx, { userId: existingUser.id })
+
+
+                const validRefreshTokens = incomingRefreshTokens.filter(token => {
+                    try {
+                        const decoded = jwtUtility.decodeToken(token)
+
+                        jwtUtility.verifyRefreshToken(token, { audience: AudienceType.MobileApp, subject: existingUser.id, issuer: decoded?.iss as string }); return true;
+                    } catch {
+                        return false;
+                    }
+                });
+
+                const updatedRefreshTokens = [...validRefreshTokens.slice(-4), newRefreshToken]; // keep latest 4
+                await tx.update(user).set({ refresh_token: updatedRefreshTokens }).where(eq(user.id, existingUser.id));
+
+                return {
+                    accessToken,
+                    refreshToken: newRefreshToken,
+                };
+
+            })
+
+        } catch (error) {
+            systemLogger.error(error)
+            throw new BadRequestException("Error logging in", ErrorCode.BAD_REQUEST);
+
+        }
+
 
 
     }
 
 
     public async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+
+        console.log("this is the first refresh token we are processing")
+
+
         if (!refreshToken) {
             throw new BadRequestException("Refresh token is required", ErrorCode.BAD_REQUEST);
         }
+
+
 
         try {
             const decoded = jwtUtility.decodeToken(refreshToken);
@@ -337,6 +349,8 @@ export default class AuthServices {
             if (!existingSession) {
                 throw new BadRequestException("Session not found", ErrorCode.AUTH_NOT_FOUND);
             }
+
+            console.log("we are processing refresh token")
 
             // ✅ Check session expiration
             const now = new Date();
@@ -369,10 +383,16 @@ export default class AuthServices {
             });
 
             systemLogger.info(`Refresh token successfully used for user ${decodedToken.user_id}`);
+
+            console.log("hello we fucking go here")
+
+
             return {
                 accessToken: newAccessToken,
                 refreshToken: newRefreshToken,
             };
+
+
         } catch (error) {
             systemLogger.error(`Error during refresh token process: ${error}`);
             throw new BadRequestException("Failed to refresh token", ErrorCode.AUTH_INVALID_TOKEN);
