@@ -4,6 +4,7 @@ import { accounts } from "../../db/schema/account.model";
 import AnchorApi from "../../providers/anchor/anchor.modules"
 import { BadRequestException, NotFoundException } from "../../utils/error";
 import { systemLogger } from "../../utils/logger";
+import { formatKoboAsNaira } from "utils/formatAmount";
 
 
 
@@ -39,8 +40,8 @@ class WalletServices {
             if (response?.data?.data.errors?.length) {
 
                 return {
-                    available_balance: walletRecord.available_balance,
-                    ledgerBalance: walletRecord.ledger_balance
+                    available_balance: formatKoboAsNaira(walletRecord.available_balance) ,
+                    ledgerBalance: formatKoboAsNaira(walletRecord.ledger_balance) 
                 }
 
             }
@@ -50,8 +51,8 @@ class WalletServices {
             console.log(response.data.data.ledgerBalance, "this is the ledger balance ")
 
             return {
-                available_balance: response.data.data.availableBalance,
-                ledger_balance: response.data.data.ledgerBalance
+                available_balance: formatKoboAsNaira(response.data.data.availableBalance) ,
+                ledger_balance: formatKoboAsNaira(response.data.data.ledgerBalance)
             }
 
 

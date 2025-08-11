@@ -38,7 +38,6 @@ export const authMiddleware = asyncHandler(async (req: Request, res: Response, n
 
         const decoded = jwtUtility.decodeToken(token)
 
-        console.log(decoded, "this is the decoded jwt")
 
 
         const verified = jwtUtility.verifyAccessToken(token, {

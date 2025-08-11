@@ -1,16 +1,17 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter } from "react-router";
+import AuthRoutes from "./routes/AuthRoutes";
+import AppRoutes from "./routes/AppRoutes";
+import { AuthProvider } from "./context/AuthProvider";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
   return (
-    <div>
-   Welcome to Gabs Invest Admin Dsahboard
-    </div>
-  )
-}
+    <BrowserRouter>
+      <AuthProvider>
+        <AuthRoutes />
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+};
 
-export default App
+export default App;

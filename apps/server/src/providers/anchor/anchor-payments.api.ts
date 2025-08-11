@@ -15,8 +15,6 @@ class AnchorPaymentsApi extends AnchorBaseClass {
 
     public async createNipTransfer(data: AnchorTransferType) {
 
-
-
         try {
 
             const payload = {
@@ -78,7 +76,6 @@ class AnchorPaymentsApi extends AnchorBaseClass {
 
     public async createBookTransfer(data:AnchorBookTransfer) {
 
-        try {
 
             const payload = {
                 data:{
@@ -109,15 +106,11 @@ class AnchorPaymentsApi extends AnchorBaseClass {
 
             const response = await this.axios.post("/transfers",JSON.stringify(payload))
 
+            console.log(response.data.data, "direct errors be this ")
+
             return response 
 
-            
-        } catch (error) {
-            console.log(error)
-            systemLogger.error("Error creating book transfer", error)
-            throw new BadRequestException("Failed to make transfer")
-            
-        }
+    
 
     }
 

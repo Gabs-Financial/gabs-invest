@@ -8,7 +8,7 @@ import { relations } from "drizzle-orm";
 
 export const transferTypeEnum = pgEnum('transfer_type', ["debit", "credit"]);
 export const transactionTypeEnum = pgEnum('transaction_type', ["NIP_Transfer", "Book_Transfer", "Investment_Transfer"]);
-export const transactionStatus = pgEnum('status', ["PENDING", "FAILED", "COMPLETED"])
+export const transactionStatus = pgEnum('transaction_status', ["PENDING", "FAILED", "COMPLETED"])
 
 export const transactions = pgTable("transactions", {
     id: uuid("id").unique().primaryKey().defaultRandom().notNull(),

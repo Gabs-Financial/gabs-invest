@@ -232,7 +232,6 @@ export default class AuthServices {
     public async login(phoneNumber: string, password: string): Promise<{ accessToken: string, refreshToken: string }> {
 
 
-        try {
             return await db.transaction(async (tx) => {
 
 
@@ -301,11 +300,7 @@ export default class AuthServices {
 
             })
 
-        } catch (error) {
-            systemLogger.error(error)
-            throw new BadRequestException("Error logging in", ErrorCode.BAD_REQUEST);
-
-        }
+    
 
 
 
@@ -384,7 +379,6 @@ export default class AuthServices {
 
             systemLogger.info(`Refresh token successfully used for user ${decodedToken.user_id}`);
 
-            console.log("hello we fucking go here")
 
 
             return {
@@ -395,7 +389,7 @@ export default class AuthServices {
 
         } catch (error) {
             systemLogger.error(`Error during refresh token process: ${error}`);
-            throw new BadRequestException("Failed to refresh token", ErrorCode.AUTH_INVALID_TOKEN);
+            throw new BadRequestException("Session expired", ErrorCode.AUTH_INVALID_TOKEN);
         }
     }
 

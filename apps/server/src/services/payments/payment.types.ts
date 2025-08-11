@@ -29,7 +29,12 @@ export const createNipTransferSchema = createTransferType.extend({
 
 export const createBookTransferSchema = createTransferType.extend({
     destinationAccountId: z.string(),
-    destinationAccountType: accountType,
+    destinationAccountType: accountType.optional(),
+})
+
+export const resolveIdentifierSchema = z.object({
+    identifier: z.enum(["tag", "phoneNumber", "accountNumber"]),
+    value: z.string({message: "Value is required"})
 })
 
 
@@ -54,3 +59,5 @@ export type CreateTransferType<T extends TransferType> =
 
 
 export type ValidaAccountType = z.infer<typeof validateAccountSchema>
+
+export type AccountIdentifier = 'tag' | "phoneNumber"  | "accountNumber"

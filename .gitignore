@@ -6,3 +6,4 @@ logs
 .eslintcache
 package-lock.json
 .husky
+ .turbo

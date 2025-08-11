@@ -57,6 +57,34 @@
       "when": 1752379023745,
       "tag": "0007_square_cobalt_man",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1753879026266,
+      "tag": "0008_overrated_vampiro",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1753879201791,
+      "tag": "0009_heavy_blob",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1753880365730,
+      "tag": "0010_regular_ben_urich",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1753881344824,
+      "tag": "0011_safe_payback",
+      "breakpoints": true
     }
   ]
 }
