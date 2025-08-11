@@ -15,6 +15,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataTable } from "@/components/data-table";
+import { CustomerColumns, customers } from "./CustomerColumnDef";
 
 
 const CustomersPage = () => {
@@ -47,6 +49,7 @@ const CustomersPage = () => {
       <AnalyticsCard title="Total Customers" value="12,304" />
 
       {/*  customer table */}
+      <DataTable columns={CustomerColumns} data={customers}/>
     </div>
   );
 };

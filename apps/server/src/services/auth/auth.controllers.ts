@@ -31,7 +31,6 @@ class AuthControllers {
 
         const { phoneNumber } = registrationValidationSchema.parse({ ...req.body })
 
-
         await this.authService.registerUser({ phoneNumber })
 
         return res.status(HTTPSTATUS.CREATED).json({
