@@ -14,17 +14,18 @@ import {
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import { useNavigate } from "react-router";
 
 export const customers: ECustomer[] = [
   {
-    id: "c1",
+    id: "fdsfk-jgdsgk-4gdgd-7sd8f",
     first_name: "John",
     last_name: "Doe",
     middle_name: "Michael",
     account_ref: "ACC1001",
     full_name: "John Michael Doe",
     gabs_tag: "johnny_d",
-    email: "john.doe@example.com",
+    email: "john.doe@gmail.com",
     has_onboarded: true,
     password: "hashed_password_1",
     phone_number: "+2348012345678",
@@ -388,6 +389,68 @@ export const customers: ECustomer[] = [
   },
 ];
 
+
+
+type ActionsMenuProps = {
+  customer: ECustomer;
+};
+
+function ActionsMenu({ customer }: ActionsMenuProps) {
+
+  const navigate = useNavigate();
+
+  const goToCustomer = () => {
+    navigate(`${customer.id}`);
+  };
+
+  const goToWallet = () => {
+    navigate(`${customer.id}/wallet`);
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger >
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Open menu</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+        <DropdownMenuItem
+          onClick={() => {
+            navigator.clipboard.writeText(customer.id);
+          }}
+        >
+          Copy customer ID
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem onClick={goToCustomer}>
+          View customer
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={goToWallet}>
+          View customer wallet
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() =>
+            navigate(`customers/${customer.id}/investments`, {
+              replace: false,
+            })
+          }
+        >
+          View customer investments
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export const CustomerColumns: ColumnDef<ECustomer>[] = [
   {
     id: "select",
@@ -439,29 +502,9 @@ export const CustomerColumns: ColumnDef<ECustomer>[] = [
     id: "actions",
     cell: ({ row }) => {
       const customer = row.original;
+ 
 
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(customer.id)}
-            >
-              Copy customer ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View customer wallet</DropdownMenuItem>
-            <DropdownMenuItem>View customer investments</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      return <ActionsMenu customer={customer} />
     },
   },
 ];

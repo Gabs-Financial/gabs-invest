@@ -5,6 +5,7 @@ import {
   Coins,
   Home,
   LifeBuoy,
+  Lightbulb,
   Link,
   Map,
   Send,
@@ -87,13 +88,13 @@ const data = {
     },
     {
       title: "Transactions",
-      url: "#",
+      url: "/app/transactions",
       icon: Link,
     },
     {
-      title: "Refunds",
+      title: "Bills Paymemnts",
       url: "#",
-      icon: Map,
+      icon: Lightbulb,
     },
   ],
 };

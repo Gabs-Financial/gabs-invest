@@ -21,10 +21,10 @@ import { CustomerColumns, customers } from "./CustomerColumnDef";
 
 const CustomersPage = () => {
   return (
-    <div className="gap-6 flex flex-col">
+    <div className="gap-6 flex flex-col max-w-[1200px] mx-auto w-full">
       {/* header */}
       <div className="flex-row flex justify-between items-center  ">
-        <h4>Customers</h4>
+        <h4 className="text-lg  font-semibold">Customers</h4>
         <div className="flex-row flex">
           <Sheet>
             <SheetTrigger>
